@@ -1,0 +1,150 @@
+# ansible-playbook -i hosts --ask-become-pass install.yml 
+- hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+  - name: Install common packages
+    apt:
+      name: "curl, ansible, docker.io, docker-compose-v2, openssh-server, qrencode, git,  vim, virt-manager, wget, whois, wfuzz, autofs, nvtop, ssmtp"
+      state: latest
+
+  - name: Add ttow to the docker group
+    ansible.builtin.user:
+      name: ttow
+      groups: docker
+      append: yes
+
+  - name: Add azure-cli signing key
+    ansible.builtin.apt_key:
+      url: "https://packages.microsoft.com/keys/microsoft.asc"
+      state: present
+
+  - name: Add azure-cli repository
+    ansible.builtin.apt_repository:
+      repo: deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main
+      state: present
+      filename: azure-cli
+
+  - name: Install azure-cli
+    ansible.builtin.apt:
+      name: "azure-cli"
+      state: latest
+      update_cache: true
+
+  - name: Add hashicorp signing key
+    ansible.builtin.get_url:
+      url: "https://apt.releases.hashicorp.com/gpg"
+      dest: /etc/apt/trusted.gpg.d/hashicorp-archive-keyring.asc
+
+  - name: Add hashicorp repository
+    ansible.builtin.apt_repository:
+      repo: deb [signed-by=/etc/apt/trusted.gpg.d/hashicorp-archive-keyring.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
+      state: present
+      filename: hashicorp
+
+  - name: Install terraform
+    ansible.builtin.apt:
+      name: "terraform"
+      state: latest
+      update_cache: true
+
+  - name: Install snyk
+    ansible.builtin.get_url:
+      url: "https://static.snyk.io/cli/latest/snyk-linux"
+      dest: /usr/local/bin/snyk
+      mode: '0755'
+
+- hosts: workstations
+  become: true
+  gather_facts: false
+  tasks:
+  - name: Install graphical packages
+    apt:
+      name: "audacity, easytag, gimp, gnome-screenshot, libreoffice, rhythmbox, vlc, wifi-qr, pulseaudio-utils, keepass2"
+      state: latest
+
+  - name: Install vs code
+    snap:
+      name: code
+      classic: yes
+
+  - name: Install android-studio
+    snap:
+      name: android-studio
+      classic: yes
+
+  - name: Install spotify
+    snap:
+      name: spotify
+      classic: no
+
+  - name: Install postman
+    snap:
+      name: postman
+      classic: yes
+
+  - name: Install zaproxy
+    snap:
+      name: zaproxy
+      classic: yes
+
+  - name: Install buzz
+    snap:
+      name: buzz
+      classic: yes
+
+  - name: Install upscayl
+    snap:
+      name: upscayl
+      classic: yes
+
+  - name: Install mission-center
+    snap:
+      name: mission-center
+      classic: yes
+
+  - name: Add google signing key
+    ansible.builtin.apt_key:
+      url: "https://dl.google.com/linux/linux_signing_key.pub"
+      state: present
+
+  - name: Add google-chrome repository 
+    ansible.builtin.apt_repository:
+      repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+      state: present
+      filename: google-chrome
+
+  - name: Install google-chrome-stable
+    ansible.builtin.apt:
+      name: "google-chrome-stable"
+      state: latest
+      update_cache: true
+
+  - name: Install zoom
+    ansible.builtin.apt:
+      deb: https://zoom.us/client/latest/zoom_amd64.deb
+
+- hosts: all
+  become: false
+  gather_facts: false
+  tasks:
+  - name: Configure git email
+    git_config:
+      name: user.email
+      scope: global
+      value: 'ttowne43@gmail.com'
+
+  - name: Configure git name
+    git_config:
+      name: user.name
+      scope: global
+      value: 'Tom Towne'
+
+
+
+
+#ALSA_DEVICE=`pactl list | grep -A2 '^Source #' | grep 'Name: .*\.monitor$' | awk '{print $NF}' | tail -n1`
+#parec -d $ALSA_DEVICE --file-format=flac > test3.flac
+
+#for x in `nmcli -f name con | grep mojio`; do nmcli con del $x; done
+#for x in `find ~/Documents/mojio/vpncerts/ | grep ovpn`; do nmcli connection import type openvpn file $x; done
